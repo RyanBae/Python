@@ -9,13 +9,23 @@ def hello():
     return render_template('hello.html', title = 'Hello Jinja2!!' , h1 ='Hello jinja2!')
 
 
-@app.route('/test', method=['GET', 'POST'])
+@app.route('/test')
 def test():
-    if request.method =='GET':
-        return render_template('post.html')
-    elif request.method =='POST':
-        value = request.form['test']
-        return render_template('default.html')
+    return render_template('post.html')
+
+@app.route('/post', methods=['POST'])
+def post():
+    value = request.form['test']
+    return value
+
+
+#@app.route('/test', method=['GET', 'POST'])
+#    def test():
+#        if request.method =='GET':
+#            return render_template('post.html')
+#        elif request.method =='POST':
+#            value = request.form['test']
+#            return render_template('default.html')
 
 
 
