@@ -11,7 +11,6 @@ def hello():
     #return "<h1>Hello World!</h1>"
     return render_template('hello.html', title = 'Hello Jinja2!!' , h1 ='Hello jinja2!')
 
-
 @app.route('/test', methods=['GET', 'POST'])
 def test():
     if request.method =='GET':
@@ -20,6 +19,21 @@ def test():
         value = request.form['test']
         print(value)
         return render_template('default.html')
+
+#@app.route('/test')
+#def test():
+#    return render_template('post.html')
+#@app.route('/post', methods=['POST'])
+#def post():
+#    value = request.form['test']
+#    return value
+#@app.route('/test', method=['GET', 'POST'])
+#    def test():
+#        if request.method =='GET':
+#            return render_template('post.html')
+#        elif request.method =='POST':
+#            value = request.form['test']
+#            return render_template('default.html')
 
 @app.route('/in')
 def index():
