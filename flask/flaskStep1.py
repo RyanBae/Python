@@ -1,9 +1,14 @@
 from flask import Flask, render_template, request, session, jsonify, redirect, url_for
+from pymongo import MongoClient
+#from werkzeug import secure_filename
 
 
 app = Flask(__name__)
 app.secret_key = b'123123as!'
 
+client = MongoClient('mongodb://localhost:27017/')
+db = client.test
+collection = db.mongotest
 
 @app.route("/")
 def hello():
@@ -46,9 +51,19 @@ def login():
     if request.method =='GET':
         return render_template('login.html')
     elif request.method =='POST':
-        session['id'] = request.form['id']
-        print(session['id'])
-        return render_template('main.html',id=session['id'])
+        userid = request.form['id']
+        password = request.form['password']
+        x = collection.find_one({"id": userid})
+        client.close();
+        print(x['password'])
+        if x['password'] == password:
+            session['id'] = x['id']
+            print(session['id'])
+            return render_template('main.html',id=session['id'])
+        else :
+            session.pop('id', None)
+            return render_template('login.html')
+
 
 
 @app.route('/logout')
@@ -79,20 +94,61 @@ def getFirst(msgId):
 
 @app.route("/api/test", methods=['POST'])
 def apiTest():
-    data = jsonify(data)
-    print(data)
+    data = request.get_json()
+    print(data['name'])
     return data
 
+@app.route("/upload")
+def upload():
+    return render_template('upload.html')
 
+@app.route("/fileUpload", methods=['GET', 'POST'])
+def fileUpload():
+    if request.method == 'POST':
+        file = request.files['file']
+        #경로, 파일명
+        #file.save("./file/"+secure_filename(file.filename))
+        return "파일 업로드 성공"
+
+
+
+
+
+
+@app.route('/mongo', methods=['GET'])
+def mongoTest():
+    results = collection.find()
+    client.close();
+    return render_template('mongo.html', data=results)
+
+
+@app.route('/mongoinput', methods=['GET'])
+def mongoinput():
+    return render_template('insert.html')
+
+@app.route('/mongoinsert', methods=['POST'])
+def mongoinseft():
+    userid = request.form['id']
+    password = request.form['password']
+    name = request.form['name']
+    print(userid +" / "+password+" / "+name)
+    user = {"id": userid, 
+            "password":password,
+             "name":name}
+    print(user)
+    collection.insert(user)
+    client.close();
+    return render_template('login.html')
 
 host_addr = "0.0.0.0"
 port_num = "8080"
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port="8080")
+    app.run(host=host_addr, port=port_num)
 
 #jinja2 사용하기
 # request body 에 body -> json 데이터 받기 (딕셔너리, 맵 받기)
 # 파일 업로드하기
 # 세션 사용해서 로그인, 로그아웃.
 #이거 이후에 몽고db연결
+#몽고 DB 리플레이스 사용해보기
