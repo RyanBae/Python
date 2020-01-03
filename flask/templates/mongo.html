@@ -9,8 +9,11 @@
         <p>연결이 성공되면 아래에 데이터가 뜰꺼야!</p>
         <p>------------------------------------</p>
         {% for i in data %}
-            <p>이름: {{i.id}}</p>
-            <p>내용: {{i.name}}</p>
+            <p>ID: {{i.id}}</p>
+            <p>NAME: {{i.name}}</p>
+            <p>PASSWORD: {{i.password}}</p>
+            <p>ADDRESS: {{i.address}}</p>
+            <p>PHONE: {{i.phone}}</p>
             <p>---------------</p>
         {% endfor %}
     </div>

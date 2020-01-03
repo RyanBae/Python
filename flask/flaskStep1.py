@@ -44,25 +44,32 @@ def test():
 def index():
     if 'id' in session:
         return render_template('main.html',id=session['id'])
-    return 'no login'    
+    return render_template('nologin.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method =='GET':
-        return render_template('login.html')
-    elif request.method =='POST':
-        userid = request.form['id']
-        password = request.form['password']
-        x = collection.find_one({"id": userid})
-        client.close();
-        print(x['password'])
-        if x['password'] == password:
-            session['id'] = x['id']
-            print(session['id'])
-            return render_template('main.html',id=session['id'])
-        else :
-            session.pop('id', None)
+    if 'id' in session:
+        return redirect(url_for('index'))
+    else :
+        if request.method =='GET':
             return render_template('login.html')
+        elif request.method =='POST':
+            userid = request.form['id']
+            password = request.form['password']
+            x = collection.find_one({"id": userid})
+            client.close();
+            if x == None:
+               return render_template('login.html') 
+            else:
+                if x['password'] == password:
+                    session['id'] = x['id']
+                    session['name'] = x['name']
+                    print(session['id'])
+                    return render_template('main.html',id=session['id'])
+                else :
+                    session.pop('id', None)
+                    return render_template('login.html')
+
 
 
 
@@ -140,6 +147,57 @@ def mongoinseft():
     client.close();
     return render_template('login.html')
 
+@app.route('/mypage', methods=['GET'])
+def mypage():
+    if 'id' in session:
+        return render_template('mypage.html', id=session['id'], name=session['name'])
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/passwordCh', methods=['GET','POST'])
+def passwordCh():
+    if request.method == 'GET':
+        return render_template('passCh.html');
+    elif request.method == 'POST':
+        print(session['id'])
+        x = collection.find_one({"id": session['id']})
+        if request.form['pass'] == x['password']:
+            newpass = request.form['newpass']
+            collection.update({"id":session['id']}, {"$set":{"password":newpass}})
+            client.close();
+            session.pop('id', None)
+            return redirect(url_for('login'))
+        else :
+            return redirect(url_for('passwordCh'))
+
+@app.route('/delete', methods=['GET'])
+def delete():
+    userid = session['id']
+    session.pop('id', None)
+    collection.remove({"id":userid})
+    return redirect(url_for('index'))
+
+@app.route('/replace', methods=['GET','POST'])
+def replace():
+    if request.method == 'GET':
+        if 'id' in session :
+            userid = session['id']
+            name = session['name']
+            return render_template('replace.html', userid = userid, name=name)
+        else:
+            return redirect(url_for('login'))
+    elif request.method == 'POST':
+        userid = session['id']
+        name = session['name']
+        address = request.form['address']
+        phone = request.form['phone']
+        x = collection.find_one({"id":userid})
+        collection.replace_one({"id":userid}, 
+            {"id":userid, "name":name, "address":address, "phone":phone, "password":x['password']})
+        client.close();
+        return redirect(url_for('mongoTest'))
+        
+
 host_addr = "0.0.0.0"
 port_num = "8080"
 
@@ -152,3 +210,8 @@ if __name__ == "__main__":
 # 세션 사용해서 로그인, 로그아웃.
 #이거 이후에 몽고db연결
 #몽고 DB 리플레이스 사용해보기
+
+#find더 해보기 
+# 대소 비교, like 검색
+# 정규식 집어 넣을수 있음. 
+# 어그리레이션(집계) *어려움
